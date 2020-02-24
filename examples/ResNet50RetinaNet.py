@@ -2,7 +2,6 @@
 # coding: utf-8
 
 # ## Load necessary modules
-# import keras
 import keras
 
 import sys
@@ -34,10 +33,6 @@ setup_gpu(gpu)
 
 
 # ## Load RetinaNet model
-
-# In[ ]:
-
-
 # adjust this to point to your downloaded/trained model
 # models can be downloaded here: https://github.com/fizyr/keras-retinanet/releases
 model_path = os.path.join('..', 'snapshots', 'resnet50_coco_best_v2.1.0.h5')
@@ -56,12 +51,9 @@ labels_to_names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'air
 
 
 # ## Run detection on example
-
-# In[ ]:
-
-
 # load image
-image = read_image_bgr('000000008021.jpg')
+#image = read_image_bgr('000000008021.jpg')
+image = read_image_bgr('street2.jpg')
 
 # copy to draw on
 draw = image.copy()
@@ -82,7 +74,7 @@ boxes /= scale
 # visualize detections
 for box, score, label in zip(boxes[0], scores[0], labels[0]):
     # scores are sorted so we can break
-    if score < 0.5:
+    if score < 0.3:
         break
         
     color = label_color(label)
@@ -91,21 +83,13 @@ for box, score, label in zip(boxes[0], scores[0], labels[0]):
     draw_box(draw, b, color=color)
     
     caption = "{} {:.3f}".format(labels_to_names[label], score)
+    caption = ""
     draw_caption(draw, b, caption)
     
 plt.figure(figsize=(15, 15))
 plt.axis('off')
 plt.imshow(draw)
 plt.show()
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
 
 
 
