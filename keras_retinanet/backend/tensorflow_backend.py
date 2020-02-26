@@ -1,18 +1,23 @@
 """
-Copyright 2017-2018 Fizyr (https://fizyr.com)
+original copyright message:
+    Copyright 2017-2018 Fizyr (https://fizyr.com)
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+addition:
+    This file has been modified by Matthias Pilz (http://github.com/MatthiasPilz)
 """
+
 
 import tensorflow
 
@@ -108,3 +113,28 @@ def unstack(*args, **kwargs):
     """ See https://www.tensorflow.org/api_docs/python/tf/unstack .
     """
     return tensorflow.unstack(*args, **kwargs)
+
+
+def tensorflow_shutup():
+    """
+    Make Tensorflow less verbose
+    """
+    try:
+        # noinspection PyPackageRequirements
+        import os
+        from tensorflow import logging
+        logging.set_verbosity(logging.ERROR)
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+        # Monkey patching deprecation utils to shut it up! Maybe good idea to disable this once after upgrade
+        # noinspection PyUnusedLocal
+        def deprecated(date, instructions, warn_once=True):
+            def deprecated_wrapper(func):
+                return func
+            return deprecated_wrapper
+
+        from tensorflow.python.util import deprecation
+        deprecation.deprecated = deprecated
+
+    except ImportError:
+        pass

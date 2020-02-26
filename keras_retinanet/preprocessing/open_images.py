@@ -1,17 +1,21 @@
 """
-Copyright 2017-2018 lvaleriu (https://github.com/lvaleriu/)
+original copyright message:
+    Copyright 2017-2018 lvaleriu (https://github.com/lvaleriu/)
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+addition:
+    This file has been modified by Matthias Pilz (http://github.com/MatthiasPilz)
 """
 
 import csv
@@ -284,12 +288,12 @@ class OpenImagesGenerator(Generator):
                     break
 
             if parent_cls is None:
-                raise Exception('Couldnt find label {}'.format(parent_label))
+                raise Exception('Couldn\'t find label {}'.format(parent_label))
 
             parent_tree = find_hierarchy_parent(self.hierarchy, parent_cls)
 
             if parent_tree is None:
-                raise Exception('Couldnt find parent {} in the semantic hierarchical tree'.format(parent_label))
+                raise Exception('Couldn\'t find parent {} in the semantic hierarchical tree'.format(parent_label))
 
             children = load_hierarchy_children(parent_tree)
 

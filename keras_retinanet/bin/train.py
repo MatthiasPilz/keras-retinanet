@@ -54,6 +54,7 @@ from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.tf_version import check_tf_version
 from ..utils.transform import random_transform_generator
+from ..backend.tensorflow_backend import tensorflow_shutup
 
 
 def makedirs(path):
@@ -451,6 +452,9 @@ def parse_args(args):
 #   MAIN FUNCTION                                                                                                      #
 ########################################################################################################################
 def main(args=None):
+    # reduce output of tensorflow
+    tensorflow_shutup()
+
     # parse arguments
     if args is None:
         args = sys.argv[1:]
