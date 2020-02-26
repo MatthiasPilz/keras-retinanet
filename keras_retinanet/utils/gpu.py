@@ -1,17 +1,21 @@
 """
-Copyright 2017-2019 Fizyr (https://fizyr.com)
+original copyright message:
+    Copyright 2017-2018 Fizyr (https://fizyr.com)
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+addition:
+    This file has been modified by Matthias Pilz (http://github.com/MatthiasPilz)
 """
 
 import tensorflow as tf
@@ -47,16 +51,9 @@ def setup_gpu(gpu_id):
             os.environ['CUDA_VISIBLE_DEVICES'] = ""
             return
 
-        # MATTHIAS changes
-        # os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
-        os.environ['CUDA_VISIBLE_DEVICES'] = "0"
-
-        # MATTHIAS changes
-        # config = tf.ConfigProto()
-        config = tf.compat.v1.ConfigProto()
+        os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
+        gpu_memory_limit = tf.GPUOptions(per_process_gpu_memory_fraction=0.33)
+        config = tf.compat.v1.ConfigProto(gpu_options=gpu_memory_limit)
 
         config.gpu_options.allow_growth = True
-
-        # MATTHIAS changes
-        # tf.keras.backend.set_session(tf.Session(config=config))
         tf.compat.v1.keras.backend.set_session(tf.compat.v1.Session(config=config))

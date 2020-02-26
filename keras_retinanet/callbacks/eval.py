@@ -86,7 +86,7 @@ class Evaluate(keras.callbacks.Callback):
         if self.tensorboard:
             import tensorflow as tf
             if tf.version.VERSION < '2.0.0' and self.tensorboard.writer:
-                summary = tf.Summary()
+                summary = tf.compat.v1.Summary()
                 summary_value = summary.value.add()
                 summary_value.simple_value = self.mean_ap
                 summary_value.tag = "mAP"
