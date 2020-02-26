@@ -217,11 +217,9 @@ def __build_anchors(anchor_parameters, features):
     Returns
         A tensor containing the anchors for the FPN features.
 
-        The shape is:
-        ```
-        (batch_size, num_anchors, 4)
-        ```
+        The shape is: (batch_size, num_anchors, 4)
     """
+
     anchors = [
         layers.Anchors(
             size=anchor_parameters.sizes[i],
@@ -328,7 +326,7 @@ def retinanet_bbox(
 
     # compute the anchors
     features = [model.get_layer(p_name).output for p_name in ['P3', 'P4', 'P5', 'P6', 'P7']]
-    anchors  = __build_anchors(anchor_params, features)
+    anchors  = __build_anchors(anchor_params, features)  # this functions creates some funny output in the cli
 
     # we expect the anchors, regression and classification values as first output
     regression     = model.outputs[0]

@@ -63,8 +63,7 @@ labels_to_names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'air
 
 # ## Run detection on example
 # load image
-#image = read_image_bgr('000000008021.jpg')
-image = read_image_bgr('street2.jpg')
+image = read_image_bgr('000000008021.jpg')
 
 # copy to draw on
 draw = image.copy()
