@@ -419,6 +419,7 @@ def parse_args(args):
     parser.add_argument('--backbone',         help='Backbone model used by retinanet.', default='resnet50', type=str)
     parser.add_argument('--batch-size',       help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu',              help='Id of the GPU to use (as reported by nvidia-smi).', type=int)
+    parser.add_argument('--gpu-memory-limit', help='Fraction of maximum gpu memory usage', type=float, default=1.0)
     parser.add_argument('--multi-gpu',        help='Number of GPUs to use for parallel processing.', type=int, default=0)
     parser.add_argument('--multi-gpu-force',  help='Extra flag needed to enable (experimental) multi-gpu support.', action='store_true')
     parser.add_argument('--initial-epoch',    help='Epoch from which to begin the train, useful if resuming from snapshot.', type=int, default=0)
@@ -437,7 +438,6 @@ def parse_args(args):
     parser.add_argument('--config',           help='Path to a configuration parameters .ini file.')
     parser.add_argument('--weighted-average', help='Compute the mAP using the weighted average of precisions among classes.', action='store_true')
     parser.add_argument('--compute-val-loss', help='Compute validation loss during training', dest='compute_val_loss', action='store_true')
-    parser.add_argument('--no-version-check', help='Check whether sufficient version of keras and tensorflow are installed', default=False, type=bool)
 
     # Fit generator arguments
     parser.add_argument('--multiprocessing',  help='Use multiprocessing in fit_generator.', action='store_true')
@@ -460,13 +460,15 @@ def main(args=None):
     backbone = models.backbone(args.backbone)
 
     # make sure keras and tensorflow are the minimum required version
-    if args.no_version_check is False:
-        check_keras_version()
-        check_tf_version()
+    check_keras_version()
+    check_tf_version()
 
-    # optionally choose specific GPU
-    if args.gpu:
-        setup_gpu(args.gpu)
+    # optionally choose specific GPU and set limit on memory
+    if args.gpu is not None:
+        if args.gpu_memory_limit is not None:
+            setup_gpu(args.gpu, args.gpu_memory_limit)
+        else:
+            setup_gpu(args.gpu)
 
     # optionally load config parameters
     if args.config:
@@ -502,7 +504,7 @@ def main(args=None):
         )
 
     # print model summary
-    #print(model.summary())
+    # print(model.summary())
 
     # this lets the generator compute backbone layer shapes using the actual backbone model
     if 'vgg' in args.backbone or 'densenet' in args.backbone:

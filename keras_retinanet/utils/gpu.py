@@ -23,7 +23,7 @@ import tensorflow as tf
 from .tf_version import tf_version_ok
 
 
-def setup_gpu(gpu_id):
+def setup_gpu(gpu_id, memory_limit=1.0):
     if tf_version_ok((2, 0, 0)):
         if gpu_id == 'cpu' or gpu_id == -1:
             tf.config.experimental.set_visible_devices([], 'GPU')
@@ -52,7 +52,7 @@ def setup_gpu(gpu_id):
             return
 
         os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
-        gpu_memory_limit = tf.GPUOptions(per_process_gpu_memory_fraction=0.33)
+        gpu_memory_limit = tf.compat.v1.GPUOptions(per_process_gpu_memory_fraction=memory_limit)
         config = tf.compat.v1.ConfigProto(gpu_options=gpu_memory_limit)
 
         config.gpu_options.allow_growth = True
