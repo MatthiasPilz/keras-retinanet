@@ -36,7 +36,7 @@ vd_classes = {
     'others'            : 11
 }
 
-vd_classes_focussed = {
+vd_classesFocussed = {
     'car'               : 4,
     'van'               : 5,
     'truck'             : 6,
@@ -44,12 +44,20 @@ vd_classes_focussed = {
     'others'            : 11
 }
 
+vd_classesFocussedInversed = {
+    4   : 'car',
+    5   : 'van',
+    6   : 'truck',
+    9   : 'bus',
+    11  : 'others'
+}
+
 
 def _translate_boudingBoxes(
-        xLeft,
-        yLeft,
-        width,
-        height
+        xLeft: int,
+        yLeft: int,
+        width: int,
+        height: int
 ):
     """ translate the annotation of the visdrone dataset into the one used in csv_generator
 
@@ -88,33 +96,37 @@ def create_csvAnnotation(
 
     with open(csvFileName+'.csv', mode='w') as csvFile:
         csvWriter = csv.writer(csvFile, delimiter=',')
-        fileCounter = 0
         for fileNameComplete in os.listdir(fileLocation):
             fileName = os.path.splitext(fileNameComplete)[0]
-            if fileCounter > 10:
-                break
-
-            fileCounter += 1
+            fileName = './images/' + fileName + '.jpg'
             with open(os.path.join(fileLocation, fileNameComplete), 'r') as f:
                 line = f.readline()
                 while line:
                     visAnnotation = line.split(',')
-                    currentClass = visAnnotation[5]
+                    currentClass = int(visAnnotation[5])
 
                     # only consider those of the 'interesting' classes:
-                    if currentClass in list(vd_classes_focussed.values()):
-                        x1, y1, x2, y2 = _translate_boudingBoxes( visAnnotation[0],
-                                                                  visAnnotation[1],
-                                                                  visAnnotation[2],
-                                                                  visAnnotation[3] )
-                        csvWriter.writerow([fileName, str(x1), str(y1), str(x2), str(y2), currentClass])
+                    if currentClass in vd_classesFocussedInversed.keys():
+                        x1, y1, x2, y2 = _translate_boudingBoxes( int(visAnnotation[0]),
+                                                                  int(visAnnotation[1]),
+                                                                  int(visAnnotation[2]),
+                                                                  int(visAnnotation[3]) )
+                        csvWriter.writerow([fileName, str(x1), str(y1), str(x2), str(y2), vd_classesFocussedInversed[currentClass]])
+
+                    line = f.readline()
 
 
 ########################################################################################################################
 #   MAIN FUNCTION                                                                                                      #
 ########################################################################################################################
 def main():
-    create_csvAnnotation('../../tests/test-data/VisDrone2019-DET-train/annotations', 'TestCSV01')
+    temp = ['val', 'train', 'test-dev']
+    for t in temp:
+        fileLocation = '../../tests/test-data/VisDrone2019-DET-' + t + '/annotations'
+        csvFileName = '../../tests/test-data/VisDrone2019-DET-' + t + '/VisDrone2019-DET-' + t + 'Annotation'
+
+        create_csvAnnotation(fileLocation, csvFileName)
+
 
 if __name__ == '__main__':
     main()
