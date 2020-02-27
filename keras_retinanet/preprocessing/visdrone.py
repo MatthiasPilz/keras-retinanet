@@ -75,6 +75,12 @@ def _translate_boudingBoxes(
     y1 = yLeft
     x2 = x1 + width
     y2 = y1 + height
+
+    if y2 == y1:
+        y2 += 1
+    if x2 == x1:
+        x2 += 1
+
     return x1, y1, x2, y2
 
 
@@ -91,11 +97,12 @@ def create_csvAnnotation(
         fileLocation    : The folder that contains the annotations
 
     Returns
-        boolean to indicate whether the csv was produced successfully
+        list of images that are usable, i.e. include suitable objects
     """
 
     with open(csvFileName+'.csv', mode='w') as csvFile:
         csvWriter = csv.writer(csvFile, delimiter=',')
+        fileList = set()
         for fileNameComplete in os.listdir(fileLocation):
             fileName = os.path.splitext(fileNameComplete)[0]
             fileName = './images/' + fileName + '.jpg'
@@ -107,6 +114,7 @@ def create_csvAnnotation(
 
                     # only consider those of the 'interesting' classes:
                     if currentClass in vd_classesFocussedInversed.keys():
+                        fileList.add(fileName)
                         x1, y1, x2, y2 = _translate_boudingBoxes( int(visAnnotation[0]),
                                                                   int(visAnnotation[1]),
                                                                   int(visAnnotation[2]),
@@ -114,6 +122,8 @@ def create_csvAnnotation(
                         csvWriter.writerow([fileName, str(x1), str(y1), str(x2), str(y2), vd_classesFocussedInversed[currentClass]])
 
                     line = f.readline()
+
+    return fileList
 
 
 ########################################################################################################################
@@ -125,7 +135,9 @@ def main():
         fileLocation = '../../tests/test-data/VisDrone2019-DET-' + t + '/annotations'
         csvFileName = '../../tests/test-data/VisDrone2019-DET-' + t + '/VisDrone2019-DET-' + t + 'Annotation'
 
-        create_csvAnnotation(fileLocation, csvFileName)
+        files = create_csvAnnotation(fileLocation, csvFileName)
+
+        print('There are {} unique images in the {}-set'.format(len(files), t))
 
 
 if __name__ == '__main__':
