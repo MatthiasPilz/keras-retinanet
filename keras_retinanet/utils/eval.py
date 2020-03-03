@@ -288,21 +288,22 @@ def calc_confusionMatrix(
     # pickle.dump(all_detections, open('all_detections.pkl', 'wb'))
     # pickle.dump(all_annotations, open('all_annotations.pkl', 'wb'))
 
-    # process detections and annotations
-    for label in range(generator.num_classes()):
-        if not generator.has_label(label):
-            continue
+    # looping through all the images
+    for i in range(generator.size()):
+        imgDetections = all_detections[i]
+        imgAnnotations = all_annotations[i]
+        print(imgAnnotations)
 
-        false_positives = np.zeros((0,))
-        true_positives  = np.zeros((0,))
-        scores          = np.zeros((0,))
-        num_annotations = 0.0
+        # process detections
+        for detLabel in range(generator.num_classes()):
+            if not generator.has_label(detLabel):
+                continue
 
-        for i in range(generator.size()):
-            detections           = all_detections[i][label]
-            annotations          = all_annotations[i][label]
-            num_annotations     += annotations.shape[0]
-            detected_annotations = []
+            # process annotations
+            for annLabel in range(generator.num_classes()):
+                detections           = imgDetections[detLabel]
+                annotations          = imgAnnotations[annLabel]
+                detected_annotations = []
 
             for d in detections:
                 scores = np.append(scores, d[4])
