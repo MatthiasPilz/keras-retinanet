@@ -48,8 +48,7 @@ vd_classesFocussedInversed = {
     4   : 'car',
     5   : 'van',
     6   : 'truck',
-    9   : 'bus',
-    11  : 'others'
+    9   : 'bus'
 }
 
 
@@ -100,21 +99,28 @@ def create_csvAnnotation(
         list of images that are usable, i.e. include suitable objects
     """
 
+    categoryCounter = [0 for _ in range(len(list(vd_classes.values())))]
+
     with open(csvFileName+'.csv', mode='w') as csvFile:
         csvWriter = csv.writer(csvFile, delimiter=',')
-        fileList = set()
+        fileSet = set()
+        lineCounterList = []
+        curMaxCount = 0
         for fileNameComplete in os.listdir(fileLocation):
             fileName = os.path.splitext(fileNameComplete)[0]
             fileName = './images/' + fileName + '.jpg'
             with open(os.path.join(fileLocation, fileNameComplete), 'r') as f:
                 line = f.readline()
+                lineCount = 0
                 while line:
                     visAnnotation = line.split(',')
                     currentClass = int(visAnnotation[5])
 
                     # only consider those of the 'interesting' classes:
                     if currentClass in vd_classesFocussedInversed.keys():
-                        fileList.add(fileName)
+                        categoryCounter[currentClass] += 1
+                        fileSet.add(fileName)
+                        lineCount += 1
                         x1, y1, x2, y2 = _translate_boudingBoxes( int(visAnnotation[0]),
                                                                   int(visAnnotation[1]),
                                                                   int(visAnnotation[2]),
@@ -123,7 +129,20 @@ def create_csvAnnotation(
 
                     line = f.readline()
 
-    return fileList
+                if lineCount > curMaxCount:
+                    curMaxCount = lineCount
+                    curMaxFile = fileName
+
+                lineCounterList.append(lineCount)
+
+        print('number of classes in {}:'.format(csvFileName))
+        print(categoryCounter)
+
+        print('max number of instances: {} in {}'.format(max(lineCounterList), curMaxFile))
+        print('min number of instances: {}'.format(min(lineCounterList)))
+        print('avg number of instances. {}:'.format(sum(lineCounterList)/len(lineCounterList)))
+
+    return fileSet
 
 
 ########################################################################################################################
@@ -138,6 +157,7 @@ def main():
         files = create_csvAnnotation(fileLocation, csvFileName)
 
         print('There are {} unique images in the {}-set'.format(len(files), t))
+        print('')
 
 
 if __name__ == '__main__':

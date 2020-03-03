@@ -199,7 +199,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         patience   = 2,
         verbose    = 1,
         mode       = 'auto',
-        min_delta  = 0.0001,
+        min_delta  = 0.001,
         cooldown   = 0,
         min_lr     = 0
     ))

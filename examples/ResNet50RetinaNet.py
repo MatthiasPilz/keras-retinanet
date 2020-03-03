@@ -35,18 +35,23 @@ setup_gpu(gpu)
 # ## Load RetinaNet model
 # adjust this to point to your downloaded/trained model
 # models can be downloaded here: https://github.com/fizyr/keras-retinanet/releases
-model_path = os.path.join('..', 'snapshots/inference', 'resnet50_coco_best_v2.1.0.h5')
+# model_path = os.path.join('..', 'snapshots', 'resnet101_csv_03.h5')
+model_path = os.path.join('..', 'snapshots', 'resnet101_csv_13.h5')
+# model_path = os.path.join('..', 'snapshots', 'resnet50_coco_best_v2.1.0.h5')
 
 # load retinanet model
-model = models.load_model(model_path, backbone_name='resnet50')
+model = models.load_model(model_path, backbone_name='resnet101')
+# model = models.load_model(model_path, backbone_name='resnet50')
 
 # if the model is not converted to an inference model, use the line below
 # see: https://github.com/fizyr/keras-retinanet#converting-a-training-model-to-inference-model
-# model = models.convert_model(model)
+model = models.convert_model(model)
 
 #print(model.summary())
 
 # load label to names mapping for visualization purposes
+"""
+# COCO class labels
 labels_to_names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'airplane', 5: 'bus', 6: 'train', 7: 'truck',
                    8: 'boat', 9: 'traffic light', 10: 'fire hydrant', 11: 'stop sign', 12: 'parking meter', 13: 'bench',
                    14: 'bird', 15: 'cat', 16: 'dog', 17: 'horse', 18: 'sheep', 19: 'cow', 20: 'elephant', 21: 'bear',
@@ -59,11 +64,13 @@ labels_to_names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'air
                    61: 'toilet', 62: 'tv', 63: 'laptop', 64: 'mouse', 65: 'remote', 66: 'keyboard', 67: 'cell phone',
                    68: 'microwave', 69: 'oven', 70: 'toaster', 71: 'sink', 72: 'refrigerator', 73: 'book', 74: 'clock',
                    75: 'vase', 76: 'scissors', 77: 'teddy bear', 78: 'hair drier', 79: 'toothbrush'}
+"""
+labels_to_names = {0: 'car', 1: 'truck', 2: 'van', 3: 'bus'}
 
 
 # ## Run detection on example
 # load image
-image = read_image_bgr('000000008021.jpg')
+image = read_image_bgr('0000126_11844_d_0000130.jpg')
 
 # copy to draw on
 draw = image.copy()
@@ -92,7 +99,7 @@ for box, score, label in zip(boxes[0], scores[0], labels[0]):
     b = box.astype(int)
     draw_box(draw, b, color=color)
     
-    caption = "{} {:.3f}".format(labels_to_names[label], score)
+    # caption = "{} {:.3f}".format(labels_to_names[label], score)
     caption = ""
     draw_caption(draw, b, caption)
     

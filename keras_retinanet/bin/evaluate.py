@@ -30,6 +30,7 @@ from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.eval import evaluate
+from ..utils.eval import calc_confusionMatrix
 from ..utils.gpu import setup_gpu
 from ..utils.keras_version import check_keras_version
 from ..utils.tf_version import check_tf_version
@@ -144,7 +145,7 @@ def main(args=None):
 
     # optionally convert the model
     if args.convert_model:
-        model = models.convert_model(model, anchor_params=anchor_params)
+        model = models.convert_model(model, anchor_params=anchor_params, class_specific_filter = False)
 
     # print model summary
     # print(model.summary())
@@ -154,7 +155,16 @@ def main(args=None):
         from ..utils.coco_eval import evaluate_coco
         evaluate_coco(generator, model, args.score_threshold)
     else:
-        average_precisions, inference_time = evaluate(
+        # average_precisions, inference_time = evaluate(
+        #     generator,
+        #     model,
+        #     iou_threshold=args.iou_threshold,
+        #     score_threshold=args.score_threshold,
+        #     max_detections=args.max_detections,
+        #     save_path=args.save_path
+        # )
+
+        average_precisions, inference_time = calc_confusionMatrix(
             generator,
             model,
             iou_threshold=args.iou_threshold,
@@ -162,6 +172,8 @@ def main(args=None):
             max_detections=args.max_detections,
             save_path=args.save_path
         )
+
+
 
         # print evaluation
         total_instances = []

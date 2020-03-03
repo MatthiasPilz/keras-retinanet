@@ -123,7 +123,7 @@ def tensorflow_shutup():
         # noinspection PyPackageRequirements
         import os
         tensorflow.compat.v1.logging.set_verbosity(tensorflow.compat.v1.logging.ERROR)
-        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+        os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 
         # Monkey patching deprecation utils to shut it up! Maybe good idea to disable this once after upgrade
         # noinspection PyUnusedLocal

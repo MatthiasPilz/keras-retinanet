@@ -13,7 +13,11 @@ def test_config_read():
     assert 'strides' in config['anchor_parameters']
     assert 'ratios' in config['anchor_parameters']
     assert 'scales' in config['anchor_parameters']
-    assert config['anchor_parameters']['sizes']   == '32 64 128 256 512'
+
+    # here
+    assert config['anchor_parameters']['sizes']   == '16 32 64 128 256'
+    # assert config['anchor_parameters']['sizes']   == '32 64 128 256 512'
+
     assert config['anchor_parameters']['strides'] == '8 16 32 64 128'
     assert config['anchor_parameters']['ratios']  == '0.5 1 2 3'
     assert config['anchor_parameters']['scales']  == '1 1.2 1.6'
@@ -22,7 +26,11 @@ def test_config_read():
 def create_anchor_params_config():
     config = configparser.ConfigParser()
     config['anchor_parameters'] = {}
-    config['anchor_parameters']['sizes']   = '32 64 128 256 512'
+
+    # here
+    config['anchor_parameters']['sizes']   = '16 32 64 128 256'
+    # config['anchor_parameters']['sizes']   = '32 64 128 256 512'
+
     config['anchor_parameters']['strides'] = '8 16 32 64 128'
     config['anchor_parameters']['ratios']  = '0.5 1'
     config['anchor_parameters']['scales']  = '1 1.2 1.6'
@@ -34,7 +42,10 @@ def test_parse_anchor_parameters():
     config = create_anchor_params_config()
     anchor_params_parsed = parse_anchor_parameters(config)
 
-    sizes   = [32, 64, 128, 256, 512]
+    # here
+    sizes   = [16, 32, 64, 128, 256]
+    # sizes   = [32, 64, 128, 256, 512]
+
     strides = [8, 16, 32, 64, 128]
     ratios  = np.array([0.5, 1], keras.backend.floatx())
     scales  = np.array([1, 1.2, 1.6], keras.backend.floatx())
@@ -70,7 +81,7 @@ def test_anchors_for_shape_values():
     image_shape    = (16, 16)
     all_anchors    = anchors_for_shape(image_shape, pyramid_levels=pyramid_levels, anchor_params=anchor_params)
 
-    # using almost_equal for floating point imprecisions
+    # using almost_equal for floating point imprecision
     np.testing.assert_almost_equal(all_anchors[0, :], [
         strides[0] / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
         strides[0] / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
