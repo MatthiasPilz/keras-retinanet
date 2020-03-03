@@ -245,12 +245,25 @@ def evaluate(
     return average_precisions, inference_time
 
 
+def _create_confusionMatrixLabels(generator):
+    labelNamesTruth = []
+    labelNamesPred = []
+    labelNamesTruth.append('')
+    labelNamesPred.append('')
+    for classID in range(generator.num_classes()):
+        labelNamesTruth.append(generator.label_to_name(classID))
+        labelNamesPred.append(generator.label_to_name(classID))
+    labelNamesTruth.append('False Positive')
+    labelNamesPred.append('False Negative')
+    return labelNamesTruth, labelNamesPred
+
+
 def calc_confusionMatrix(
     generator,
     model,
     iou_threshold=0.5,
     score_threshold=0.05,
-    max_detections=100,
+    max_detections=200,
     save_path=None
 ):
     """ Evaluate a given dataset using a given model.
@@ -265,104 +278,94 @@ def calc_confusionMatrix(
     # Returns
         A dict mapping class names to mAP scores.
     """
-    # gather all detections and annotations
+    # gather all detections and annotations (already apply score_threshold!)
     all_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
     all_annotations    = _get_annotations(generator)
-    average_precisions = {}
 
     # prepare confusion matrix and axis labels
     confusionMatrix = np.zeros(shape=(generator.num_classes()+1, generator.num_classes()+1))
-
-    labelNamesTruth = []
-    labelNamesPred = []
-    labelNamesTruth.append('')
-    labelNamesPred.append('')
-    for classID in range(generator.num_classes()):
-        labelNamesTruth.append(generator.label_to_name(classID))
-        labelNamesPred.append(generator.label_to_name(classID))
-    labelNamesTruth.append('False Positive')
-    labelNamesPred.append('False Negative')
-
-    # all_detections = pickle.load(open('all_detections.pkl', 'rb'))
-    # all_annotations = pickle.load(open('all_annotations.pkl', 'rb'))
-    # pickle.dump(all_detections, open('all_detections.pkl', 'wb'))
-    # pickle.dump(all_annotations, open('all_annotations.pkl', 'wb'))
+    labelNamesTruth, labelNamesPred = _create_confusionMatrixLabels(generator)
 
     # looping through all the images
     for i in range(generator.size()):
         imgDetections = all_detections[i]
         imgAnnotations = all_annotations[i]
-        print(imgAnnotations)
+        print(imgDetections)
 
-        # process detections
-        for detLabel in range(generator.num_classes()):
-            if not generator.has_label(detLabel):
+        # going through all annotations
+        for annLabel in range(generator.num_classes()):
+            if not generator.has_label(annLabel):
                 continue
 
-            # process annotations
-            for annLabel in range(generator.num_classes()):
-                detections           = imgDetections[detLabel]
-                annotations          = imgAnnotations[annLabel]
-                detected_annotations = []
+            annotations = imgAnnotations[annLabel]
+            for a in annotations:
+                print(a)
 
-            for d in detections:
-                scores = np.append(scores, d[4])
 
-                if annotations.shape[0] == 0:
-                    false_positives = np.append(false_positives, 1)
-                    true_positives  = np.append(true_positives, 0)
-
-                    # last row represents the false_positives
-                    confusionMatrix[-1][label] += 1
-
-                    continue
-
-                overlaps            = compute_overlap(np.expand_dims(d, axis=0), annotations)
-                assigned_annotation = np.argmax(overlaps, axis=1)
-                max_overlap         = overlaps[0, assigned_annotation]
-
-                if max_overlap < iou_threshold:
-                    # false negative
-                    false_positives = np.append(false_positives, 0)
-                    true_positives  = np.append(true_positives, 0)
-                    confusionMatrix[label][-1] += 1
-                elif max_overlap >= iou_threshold and assigned_annotation not in detected_annotations:
-                    # true positive
-                    false_positives = np.append(false_positives, 0)
-                    true_positives  = np.append(true_positives, 1)
-                    detected_annotations.append(assigned_annotation)
-                    confusionMatrix[label][label] += 1
-                else:
-                    false_positives = np.append(false_positives, 1)
-                    true_positives  = np.append(true_positives, 0)
-                    confusionMatrix[-1][label] += 1
-
-            # # after looping through all the detections, annotations that are not used will be false negatives
-            # for a in range(int(num_annotations)):
-            #     if a not in detected_annotations:
-            #         detected_annotations.append(a)
-
-        # no annotations -> AP for this class is 0 (is this correct?)
-        if num_annotations == 0:
-            average_precisions[label] = 0, 0
-            continue
-
-        # sort by score
-        indices         = np.argsort(-scores)
-        false_positives = false_positives[indices]
-        true_positives  = true_positives[indices]
-
-        # compute false positives and true positives
-        false_positives = np.cumsum(false_positives)
-        true_positives  = np.cumsum(true_positives)
-
-        # compute recall and precision
-        recall    = true_positives / num_annotations
-        precision = true_positives / np.maximum(true_positives + false_positives, np.finfo(np.float64).eps)
-
-        # compute average precision
-        average_precision  = _compute_ap(recall, precision)
-        average_precisions[label] = average_precision, num_annotations
+        #     # process annotations
+        #     for annLabel in range(generator.num_classes()):
+        #         detections           = imgDetections[detLabel]
+        #         annotations          = imgAnnotations[annLabel]
+        #         detected_annotations = []
+        #
+        #     for d in detections:
+        #         scores = np.append(scores, d[4])
+        #
+        #         if annotations.shape[0] == 0:
+        #             false_positives = np.append(false_positives, 1)
+        #             true_positives  = np.append(true_positives, 0)
+        #
+        #             # last row represents the false_positives
+        #             confusionMatrix[-1][label] += 1
+        #
+        #             continue
+        #
+        #         overlaps            = compute_overlap(np.expand_dims(d, axis=0), annotations)
+        #         assigned_annotation = np.argmax(overlaps, axis=1)
+        #         max_overlap         = overlaps[0, assigned_annotation]
+        #
+        #         if max_overlap < iou_threshold:
+        #             # false negative
+        #             false_positives = np.append(false_positives, 0)
+        #             true_positives  = np.append(true_positives, 0)
+        #             confusionMatrix[label][-1] += 1
+        #         elif max_overlap >= iou_threshold and assigned_annotation not in detected_annotations:
+        #             # true positive
+        #             false_positives = np.append(false_positives, 0)
+        #             true_positives  = np.append(true_positives, 1)
+        #             detected_annotations.append(assigned_annotation)
+        #             confusionMatrix[label][label] += 1
+        #         else:
+        #             false_positives = np.append(false_positives, 1)
+        #             true_positives  = np.append(true_positives, 0)
+        #             confusionMatrix[-1][label] += 1
+        #
+        #     # # after looping through all the detections, annotations that are not used will be false negatives
+        #     # for a in range(int(num_annotations)):
+        #     #     if a not in detected_annotations:
+        #     #         detected_annotations.append(a)
+        #
+        # # no annotations -> AP for this class is 0 (is this correct?)
+        # if num_annotations == 0:
+        #     average_precisions[label] = 0, 0
+        #     continue
+        #
+        # # sort by score
+        # indices         = np.argsort(-scores)
+        # false_positives = false_positives[indices]
+        # true_positives  = true_positives[indices]
+        #
+        # # compute false positives and true positives
+        # false_positives = np.cumsum(false_positives)
+        # true_positives  = np.cumsum(true_positives)
+        #
+        # # compute recall and precision
+        # recall    = true_positives / num_annotations
+        # precision = true_positives / np.maximum(true_positives + false_positives, np.finfo(np.float64).eps)
+        #
+        # # compute average precision
+        # average_precision  = _compute_ap(recall, precision)
+        # average_precisions[label] = average_precision, num_annotations
 
     # plot confusion matrix
     fig, ax = plt.subplots()
@@ -379,6 +382,6 @@ def calc_confusionMatrix(
 
 
     # inference time
-    inference_time = np.sum(all_inferences) / generator.size()
+    # inference_time = np.sum(all_inferences) / generator.size()
 
-    return average_precisions, inference_time
+    return True

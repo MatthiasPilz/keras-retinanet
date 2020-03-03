@@ -60,6 +60,7 @@ setuptools.setup(
             'retinanet-evaluate=keras_retinanet.bin.evaluate:main',
             'retinanet-debug=keras_retinanet.bin.debug:main',
             'retinanet-convert-model=keras_retinanet.bin.convert_model:main',
+            'retinanet-confusionMatrix=keras_retinanet.bin.confusion:main'
         ],
     },
     ext_modules    = extensions,
