@@ -118,14 +118,16 @@ def create_csvAnnotation(
 
                     # only consider those of the 'interesting' classes:
                     if currentClass in vd_classesFocussedInversed.keys():
-                        categoryCounter[currentClass] += 1
-                        fileSet.add(fileName)
-                        lineCount += 1
-                        x1, y1, x2, y2 = _translate_boudingBoxes( int(visAnnotation[0]),
-                                                                  int(visAnnotation[1]),
-                                                                  int(visAnnotation[2]),
-                                                                  int(visAnnotation[3]) )
-                        csvWriter.writerow([fileName, str(x1), str(y1), str(x2), str(y2), vd_classesFocussedInversed[currentClass]])
+                        # filter fully occluded objects
+                        if int(visAnnotation[7]) != 2:
+                            categoryCounter[currentClass] += 1
+                            fileSet.add(fileName)
+                            lineCount += 1
+                            x1, y1, x2, y2 = _translate_boudingBoxes( int(visAnnotation[0]),
+                                                                      int(visAnnotation[1]),
+                                                                      int(visAnnotation[2]),
+                                                                      int(visAnnotation[3]) )
+                            csvWriter.writerow([fileName, str(x1), str(y1), str(x2), str(y2), vd_classesFocussedInversed[currentClass]])
 
                     line = f.readline()
 

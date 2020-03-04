@@ -255,7 +255,48 @@ def _create_confusionMatrixLabels(generator):
         labelNamesPred.append(generator.label_to_name(classID))
     labelNamesTruth.append('False Positive')
     labelNamesPred.append('False Negative')
+
     return labelNamesTruth, labelNamesPred
+
+
+def _calc_IoU(a, d):
+    # coordinates of the intersection rectangle
+    xA = max(a[0], d[0])
+    yA = max(a[1], d[1])
+    xB = min(a[2], d[2])
+    yB = min(a[3], d[3])
+
+    # intersection area
+    interArea = max(0, xB-xA+1) * max(0, yB-yA+1)
+
+    # area of the given boxes
+    boxAArea = (a[2]-a[0]+1) * (a[3]-a[1]+1)
+    boxDArea = (d[2]-d[0]+1) * (d[3]-d[1]+1)
+
+    # calculate IoU
+    return interArea / float(boxAArea + boxDArea - interArea)
+
+
+def _find_maxOverlap(a, allD):
+    numClasses = len(allD)
+    maxOverlap = 0
+    maxClass = None
+    maxMatch = []
+
+    for i in range(numClasses):
+        detections = allD[i]
+        if len(detections) == 0:
+            continue
+
+        for d in detections:
+            curOverlap = _calc_IoU(a, d)
+
+            if curOverlap > maxOverlap:
+                maxOverlap = curOverlap
+                maxClass = i
+                maxMatch = d[:numClasses].tolist()
+
+    return maxMatch, maxClass, maxOverlap
 
 
 def calc_confusionMatrix(
@@ -285,12 +326,12 @@ def calc_confusionMatrix(
     # prepare confusion matrix and axis labels
     confusionMatrix = np.zeros(shape=(generator.num_classes()+1, generator.num_classes()+1))
     labelNamesTruth, labelNamesPred = _create_confusionMatrixLabels(generator)
+    allMatches = []
 
     # looping through all the images
     for i in range(generator.size()):
         imgDetections = all_detections[i]
         imgAnnotations = all_annotations[i]
-        print(imgDetections)
 
         # going through all annotations
         for annLabel in range(generator.num_classes()):
@@ -299,73 +340,25 @@ def calc_confusionMatrix(
 
             annotations = imgAnnotations[annLabel]
             for a in annotations:
-                print(a)
+                match, classID, overlap = _find_maxOverlap(a, imgDetections)
 
+                if overlap < iou_threshold:
+                    # annotated object that has not been detected --> false_negative
+                    confusionMatrix[annLabel][-1] += 1
+                elif overlap >= iou_threshold and match not in allMatches:
+                    # sufficient overlap and detection not yet used
+                    allMatches.append(match)
+                    confusionMatrix[annLabel][classID] += 1
+                else:
+                    confusionMatrix[annLabel][-1] += 1
 
-        #     # process annotations
-        #     for annLabel in range(generator.num_classes()):
-        #         detections           = imgDetections[detLabel]
-        #         annotations          = imgAnnotations[annLabel]
-        #         detected_annotations = []
-        #
-        #     for d in detections:
-        #         scores = np.append(scores, d[4])
-        #
-        #         if annotations.shape[0] == 0:
-        #             false_positives = np.append(false_positives, 1)
-        #             true_positives  = np.append(true_positives, 0)
-        #
-        #             # last row represents the false_positives
-        #             confusionMatrix[-1][label] += 1
-        #
-        #             continue
-        #
-        #         overlaps            = compute_overlap(np.expand_dims(d, axis=0), annotations)
-        #         assigned_annotation = np.argmax(overlaps, axis=1)
-        #         max_overlap         = overlaps[0, assigned_annotation]
-        #
-        #         if max_overlap < iou_threshold:
-        #             # false negative
-        #             false_positives = np.append(false_positives, 0)
-        #             true_positives  = np.append(true_positives, 0)
-        #             confusionMatrix[label][-1] += 1
-        #         elif max_overlap >= iou_threshold and assigned_annotation not in detected_annotations:
-        #             # true positive
-        #             false_positives = np.append(false_positives, 0)
-        #             true_positives  = np.append(true_positives, 1)
-        #             detected_annotations.append(assigned_annotation)
-        #             confusionMatrix[label][label] += 1
-        #         else:
-        #             false_positives = np.append(false_positives, 1)
-        #             true_positives  = np.append(true_positives, 0)
-        #             confusionMatrix[-1][label] += 1
-        #
-        #     # # after looping through all the detections, annotations that are not used will be false negatives
-        #     # for a in range(int(num_annotations)):
-        #     #     if a not in detected_annotations:
-        #     #         detected_annotations.append(a)
-        #
-        # # no annotations -> AP for this class is 0 (is this correct?)
-        # if num_annotations == 0:
-        #     average_precisions[label] = 0, 0
-        #     continue
-        #
-        # # sort by score
-        # indices         = np.argsort(-scores)
-        # false_positives = false_positives[indices]
-        # true_positives  = true_positives[indices]
-        #
-        # # compute false positives and true positives
-        # false_positives = np.cumsum(false_positives)
-        # true_positives  = np.cumsum(true_positives)
-        #
-        # # compute recall and precision
-        # recall    = true_positives / num_annotations
-        # precision = true_positives / np.maximum(true_positives + false_positives, np.finfo(np.float64).eps)
-        #
-        # # compute average precision
-        # average_precision  = _compute_ap(recall, precision)
-        # average_precisions[label] = average_precision, num_annotations
+        # going through all detections to check which ones where not matched with a GT
+        for detLabel in range(generator.num_classes()):
+            detections = imgDetections[detLabel]
+            for d in detections:
+                transD = d[:generator.num_classes()].tolist()
+                if transD not in allMatches:
+                    confusionMatrix[-1][detLabel] += 1
 
     # plot confusion matrix
     fig, ax = plt.subplots()
@@ -379,9 +372,5 @@ def calc_confusionMatrix(
         ax.text(i, j, int(value), ha='center', va='center')
 
     plt.show()
-
-
-    # inference time
-    # inference_time = np.sum(all_inferences) / generator.size()
 
     return True
