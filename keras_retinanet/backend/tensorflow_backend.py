@@ -76,6 +76,7 @@ def resize_images(images, size, method='bilinear', align_corners=False):
 def non_max_suppression(*args, **kwargs):
     """ See https://www.tensorflow.org/api_docs/python/tf/image/non_max_suppression .
     """
+    # return tensorflow.image.non_max_suppression(*args, **kwargs)
     return tensorflow.image.non_max_suppression(*args, **kwargs)
 
 

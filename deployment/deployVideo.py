@@ -35,12 +35,13 @@ setup_gpu(gpu)
 # adjust this to point to your downloaded/trained model
 # models can be downloaded here: https://github.com/fizyr/keras-retinanet/releases
 # model_path = os.path.join('..', 'snapshots', 'resnet101_csv_03.h5')
-model_path = os.path.join('..', 'snapshots', 'resnet101_csv_30.h5')
+# model_path = os.path.join('..', 'snapshots', 'resnet101_csv_30.h5')
 # model_path = os.path.join('..', 'snapshots', 'resnet50_coco_best_v2.1.0.h5')
+model_path = os.path.join('..', 'snapshots', 'hardHat-resnet50', 'resnet50_csv_21.h5')
 
 # load retinanet model
-model = models.load_model(model_path, backbone_name='resnet101')
-# model = models.load_model(model_path, backbone_name='resnet50')
+# model = models.load_model(model_path, backbone_name='resnet101')
+model = models.load_model(model_path, backbone_name='resnet50')
 
 # if the model is not converted to an inference model, use the line below
 # see: https://github.com/fizyr/keras-retinanet#converting-a-training-model-to-inference-model
@@ -65,12 +66,14 @@ labels_to_names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'air
                    68: 'microwave', 69: 'oven', 70: 'toaster', 71: 'sink', 72: 'refrigerator', 73: 'book', 74: 'clock',
                    75: 'vase', 76: 'scissors', 77: 'teddy bear', 78: 'hair drier', 79: 'toothbrush'}
 """
+"""
 labels_to_names = {0: 'car', 1: 'truck', 2: 'van', 3: 'bus'}
-
+"""
+labels_to_names = {0: 'helmet', 1: 'no-helmet'}
 
 # ## Run detection on example
 # load image
-vidcap = cv2.VideoCapture('04054002.mp4')
+vidcap = cv2.VideoCapture('helmetTest_original.mp4')
 img_array = []
 success, image = vidcap.read()
 height, width, layers = image.shape
@@ -113,7 +116,7 @@ while success:
     # plt.imshow(draw)
     # plt.show()
 
-    cv2.imwrite("./output/frame%d.jpg" % count, draw)
+    cv2.imwrite("./output/helmetFrame%d.jpg" % count, draw)
     img_array.append(draw)
     # added one more read to effectively skip every second frame...
     vidcap.read()
@@ -122,7 +125,7 @@ while success:
     count += 1
 
 # creating video from all the frames
-out = cv2.VideoWriter('testOutput.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+out = cv2.VideoWriter('helmetTest_annotated.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
 for i in range(len(img_array)):
     out.write(img_array[i])
 out.release()
