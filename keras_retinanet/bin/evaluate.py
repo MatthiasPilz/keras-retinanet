@@ -31,6 +31,7 @@ from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.eval import evaluate
 from ..utils.eval import calc_confusionMatrix
+from ..utils.eval import evaluate_andConfusionMatrix
 from ..utils.gpu import setup_gpu
 from ..utils.keras_version import check_keras_version
 from ..utils.tf_version import check_tf_version
@@ -145,6 +146,7 @@ def main(args=None):
 
     # optionally convert the model
     if args.convert_model:
+        # model = models.convert_model(model, anchor_params=anchor_params, class_specific_filter = True)
         model = models.convert_model(model, anchor_params=anchor_params, class_specific_filter = False)
 
     # print model summary
@@ -155,16 +157,7 @@ def main(args=None):
         from ..utils.coco_eval import evaluate_coco
         evaluate_coco(generator, model, args.score_threshold)
     else:
-        # average_precisions, inference_time = evaluate(
-        #     generator,
-        #     model,
-        #     iou_threshold=args.iou_threshold,
-        #     score_threshold=args.score_threshold,
-        #     max_detections=args.max_detections,
-        #     save_path=args.save_path
-        # )
-
-        calc_confusionMatrix(
+        average_precisions, inference_time, all_annotations, all_detections = evaluate_andConfusionMatrix(
             generator,
             model,
             iou_threshold=args.iou_threshold,
@@ -172,8 +165,6 @@ def main(args=None):
             max_detections=args.max_detections,
             save_path=args.save_path
         )
-
-
 
         # print evaluation
         total_instances = []
@@ -193,6 +184,7 @@ def main(args=None):
         print('mAP using the weighted average of precisions among classes: {:.4f}'.format(sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)))
         print('mAP: {:.4f}'.format(sum(precisions) / sum(x > 0 for x in total_instances)))
 
+        calc_confusionMatrix(generator, all_annotations, all_detections, args.iou_threshold)
 
 if __name__ == '__main__':
     main()

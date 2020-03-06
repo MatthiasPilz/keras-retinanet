@@ -76,8 +76,13 @@ def resize_images(images, size, method='bilinear', align_corners=False):
 def non_max_suppression(*args, **kwargs):
     """ See https://www.tensorflow.org/api_docs/python/tf/image/non_max_suppression .
     """
-    # return tensorflow.image.non_max_suppression(*args, **kwargs)
     return tensorflow.image.non_max_suppression(*args, **kwargs)
+
+
+def non_max_suppression_with_scores(*args, **kwargs):
+    """ See https://www.tensorflow.org/api_docs/python/tf/image/non_max_suppression .
+    """
+    return tensorflow.image.non_max_suppression_with_scores(*args, **kwargs)
 
 
 def range(*args, **kwargs):
@@ -114,6 +119,24 @@ def unstack(*args, **kwargs):
     """ See https://www.tensorflow.org/api_docs/python/tf/unstack .
     """
     return tensorflow.unstack(*args, **kwargs)
+
+
+def cast(*args, **kwargs):
+    """ See https://www.tensorflow.org/api_docs/python/tf/unstack .
+    """
+    return tensorflow.cast(*args, **kwargs)
+
+
+def to_float(*args, **kwargs):
+    """ See https://www.tensorflow.org/api_docs/python/tf/unstack .
+    """
+    return tensorflow.to_float(*args, **kwargs)
+
+
+def to_int32(*args, **kwargs):
+    """ See https://www.tensorflow.org/api_docs/python/tf/unstack .
+    """
+    return tensorflow.to_int32(*args, **kwargs)
 
 
 def tensorflow_shutup():

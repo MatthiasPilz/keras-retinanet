@@ -37,7 +37,8 @@ setup_gpu(gpu)
 # model_path = os.path.join('..', 'snapshots', 'resnet101_csv_03.h5')
 # model_path = os.path.join('..', 'snapshots', 'resnet101_csv_30.h5')
 # model_path = os.path.join('..', 'snapshots', 'resnet50_coco_best_v2.1.0.h5')
-model_path = os.path.join('..', 'snapshots', 'hardHat-resnet50', 'resnet50_csv_21.h5')
+model_path = os.path.join('..', 'snapshots', 'vis-resnet50/resnet50_csv_97.h5')
+# model_path = os.path.join('..', 'snapshots', 'hardHat-resnet50', 'resnet50_csv_21.h5')
 
 # load retinanet model
 # model = models.load_model(model_path, backbone_name='resnet101')
@@ -66,20 +67,25 @@ labels_to_names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'air
                    68: 'microwave', 69: 'oven', 70: 'toaster', 71: 'sink', 72: 'refrigerator', 73: 'book', 74: 'clock',
                    75: 'vase', 76: 'scissors', 77: 'teddy bear', 78: 'hair drier', 79: 'toothbrush'}
 """
-"""
+
 labels_to_names = {0: 'car', 1: 'truck', 2: 'van', 3: 'bus'}
 """
 labels_to_names = {0: 'helmet', 1: 'no-helmet'}
-
+"""
 # ## Run detection on example
 # load image
-vidcap = cv2.VideoCapture('helmetTest_original.mp4')
+# name = "04055001"
+# name = '02315001'
+# name = '02315002'
+# name = '02316001'
+name = '04054001'
+vidcap = cv2.VideoCapture(name+'.mp4')
 img_array = []
 success, image = vidcap.read()
 height, width, layers = image.shape
 size = (width, height)
 count = 0
-while success:
+while success and count < 600:
     # copy to draw on
     draw = image.copy()
     # draw = cv2.cvtColor(draw, cv2.COLOR_BGR2RGB)
@@ -99,7 +105,7 @@ while success:
     # visualize detections
     for box, score, label in zip(boxes[0], scores[0], labels[0]):
         # scores are sorted so we can break
-        if score < 0.6:
+        if score < 0.66:
             break
 
         color = label_color(label)
@@ -116,7 +122,7 @@ while success:
     # plt.imshow(draw)
     # plt.show()
 
-    cv2.imwrite("./output/helmetFrame%d.jpg" % count, draw)
+    # cv2.imwrite("./output/helmetFrame%d.jpg" % count, draw)
     img_array.append(draw)
     # added one more read to effectively skip every second frame...
     vidcap.read()
@@ -125,7 +131,7 @@ while success:
     count += 1
 
 # creating video from all the frames
-out = cv2.VideoWriter('helmetTest_annotated.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+out = cv2.VideoWriter(name+'_annotated.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
 for i in range(len(img_array)):
     out.write(img_array[i])
 out.release()
