@@ -21,6 +21,7 @@ import cv2
 import os
 import numpy as np
 import time
+import pandas as pd
 
 # set tf backend to allow memory to grow, instead of claiming everything
 import tensorflow as tf
@@ -37,8 +38,9 @@ setup_gpu(gpu)
 # model_path = os.path.join('..', 'snapshots', 'resnet101_csv_03.h5')
 # model_path = os.path.join('..', 'snapshots', 'resnet101_csv_30.h5')
 # model_path = os.path.join('..', 'snapshots', 'resnet50_coco_best_v2.1.0.h5')
-model_path = os.path.join('..', 'snapshots', 'vis-resnet50/resnet50_csv_97.h5')
+# model_path = os.path.join('..', 'snapshots', 'vis-resnet50/resnet50_csv_97.h5')
 # model_path = os.path.join('..', 'snapshots', 'hardHat-resnet50', 'resnet50_csv_21.h5')
+model_path = os.path.join('..', 'snapshots', 'vest', 'resnet50_csv_02.h5')
 
 # load retinanet model
 # model = models.load_model(model_path, backbone_name='resnet101')
@@ -67,25 +69,27 @@ labels_to_names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'air
                    68: 'microwave', 69: 'oven', 70: 'toaster', 71: 'sink', 72: 'refrigerator', 73: 'book', 74: 'clock',
                    75: 'vase', 76: 'scissors', 77: 'teddy bear', 78: 'hair drier', 79: 'toothbrush'}
 """
-
+"""
 labels_to_names = {0: 'car', 1: 'truck', 2: 'van', 3: 'bus'}
 """
-labels_to_names = {0: 'helmet', 1: 'no-helmet'}
-"""
+# labels_to_names = {0: 'helmet', 1: 'no-helmet'}
+labels_to_names = {0: 'vest', 1: 'no-vest'}
+
 # ## Run detection on example
 # load image
-# name = "04055001"
-# name = '02315001'
-# name = '02315002'
-# name = '02316001'
-name = '04054001'
-vidcap = cv2.VideoCapture(name+'.mp4')
+name = "INCORRECTPPE(16PEOPLE)"
+name_location = './Challenge2A/videos/incorrect/'
+extension = 'mp4'
+vidcap = cv2.VideoCapture(name_location + name +'.'+extension)
 img_array = []
 success, image = vidcap.read()
 height, width, layers = image.shape
 size = (width, height)
 count = 0
-while success and count < 600:
+
+xmlList = []
+
+while success:
     # copy to draw on
     draw = image.copy()
     # draw = cv2.cvtColor(draw, cv2.COLOR_BGR2RGB)
@@ -93,6 +97,7 @@ while success and count < 600:
     # preprocess image for network
     image = preprocess_image(image)
     image, scale = resize_image(image)
+    image_location = "./output/helmetFrame{}.jpg".format(count)
 
     # process image
     start = time.clock()
@@ -104,10 +109,13 @@ while success and count < 600:
 
     # visualize detections
     for box, score, label in zip(boxes[0], scores[0], labels[0]):
-        # scores are sorted so we can break
-        if score < 0.66:
+        # if label == 0:
+            # scores are sorted so we can break
+        if score < 0.75:
             break
 
+        value = (image_location, int(box[0]), int(box[1]), int(box[2]), int(box[3]), str(labels_to_names[label]), score)
+        xmlList.append(value)
         color = label_color(label)
 
         b = box.astype(int)
@@ -121,17 +129,18 @@ while success and count < 600:
     # plt.axis('off')
     # plt.imshow(draw)
     # plt.show()
-
-    # cv2.imwrite("./output/helmetFrame%d.jpg" % count, draw)
+    xmlDF = pd.DataFrame(xmlList)
+    cv2.imwrite("./output/"+name+"vestFrame_{}.jpg".format(count), draw)
     img_array.append(draw)
     # added one more read to effectively skip every second frame...
-    vidcap.read()
+    # vidcap.read()
     success, image = vidcap.read()
     # print('Read a new frame: ', success)
     count += 1
 
+xmlDF.to_csv("./output/"+name+'vest_annotation_.csv', index=None, header=False)
 # creating video from all the frames
-out = cv2.VideoWriter(name+'_annotated.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
+out = cv2.VideoWriter("./output/"+name+'vest_annotated.avi', cv2.VideoWriter_fourcc(*'DIVX'), 15, size)
 for i in range(len(img_array)):
     out.write(img_array[i])
 out.release()
