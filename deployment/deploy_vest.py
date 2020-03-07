@@ -188,7 +188,7 @@ out = cv2.VideoWriter("./output/"+name+'vest_annotated.avi', cv2.VideoWriter_fou
 for i in range(len(img_array)):
     out.write(img_array[i])
 out.release()
-print('Created video successfully!')
+print('Created video with {} frames successfully!'.format(count))
 
 
 
